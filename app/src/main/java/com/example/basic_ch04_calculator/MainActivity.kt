@@ -5,25 +5,41 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
+import androidx.room.Room
 import com.example.basic_ch04_calculator.databinding.ActivityMainBinding
+import com.example.basic_ch04_calculator.databinding.HistoryRowBinding
+import com.example.basic_ch04_calculator.model.History
 import java.lang.NumberFormatException
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mainBinding: ActivityMainBinding
+    private lateinit var historyRowBinding: HistoryRowBinding
 
     private var isOperator = false    // 연산자를 추가하고 숫자를 추가하는 경우 띄어쓰기를 넣어줘야하기 때문에 판단을 위한 변수 선언
     private var hasOperator = false    // 연산자를 하나만 사용해야하기 때문에
+
+    lateinit var db: AppDatabase
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         mainBinding = ActivityMainBinding.inflate(layoutInflater)
+        historyRowBinding = HistoryRowBinding.inflate(layoutInflater)
 
         super.onCreate(savedInstanceState)
         setContentView(mainBinding.root)
+
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "historyDB"
+        ).build()
 
     }
 
@@ -145,12 +161,23 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+
+
         val expressionText = mainBinding.expressionTextView.text.toString()
         val resultText = calculateExpression()
+
+        // TODO 디비에 넣어주는 부분 , 디비와 관련된 과정은 새로운 스레드에서 진행
+        Thread(Runnable {
+            db.historyDao().insertHistory(History(null, expressionText, resultText))
+        }).start()
 
         // 계산된 결과는 비워주고 해당 결과를 다음 계산을 위한 계산칸으로 이동
         mainBinding.resultTextView.text = ""
         mainBinding.expressionTextView.text = resultText
+
+        isOperator = false
+        hasOperator = false
+
 
     }
 
@@ -182,7 +209,49 @@ class MainActivity : AppCompatActivity() {
 
     fun historyButtonClicked(v: View) {
 
+        mainBinding.historyLayout.isVisible = true
+        mainBinding.historyLinearLayout.removeAllViews()    // 레이아웃 아래 있는 모든 뷰 삭제
+
+        // TODO 디비에서 모든 기록 가져오기
+        // TODO 뷰에 모든 기록 할당하기
+        Thread(Runnable {
+
+            db.historyDao().getAll().reversed().forEach {
+
+                runOnUiThread {
+                    val historyView = LayoutInflater.from(this).inflate(R.layout.history_row, null, false)
+
+                    historyView.findViewById<TextView>(R.id.expressionTextView).text = it.expression
+                    historyView.findViewById<TextView>(R.id.resultTextView).text = "=${it.result}"
+
+                    mainBinding.historyLinearLayout.addView(historyView)
+
+                }
+
+            }
+
+        }).start()
+
+
     }
+
+    fun historyClearClicked(v: View) {
+        // TODO 디비에서 모든 기록 삭제
+        // TODO 뷰에서 모든 기록 삭제
+
+        mainBinding.historyLinearLayout.removeAllViews()    // 뷰에서 모든 기록 삭제
+        Thread(Runnable {
+            db.historyDao().deleteAll()
+        }).start()
+
+    }
+
+    fun closeHistoryClicked(v: View) {
+        mainBinding.historyLayout.isVisible = false
+    }
+
+
+
 
     // 숫자인지를 판단하는 String 확장 함수
     fun String.isNumber() : Boolean {
