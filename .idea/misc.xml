@@ -6,6 +6,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/ppllo/StudioProjects/Basic_Ch04_Calculator/app/src/main/res/drawable/button_backgroud.xml" value="0.290625" />
+        <entry key="..\:/Users/ppllo/StudioProjects/Basic_Ch04_Calculator/app/src/main/res/drawable/button_background_green.xml" value="0.1" />
         <entry key="..\:/Users/ppllo/StudioProjects/Basic_Ch04_Calculator/app/src/main/res/layout/activity_main.xml" value="0.27447916666666666" />
       </map>
     </option>

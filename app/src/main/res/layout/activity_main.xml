@@ -360,10 +360,7 @@
                 android:id="@+id/historyLinearLayout"
                 android:orientation="vertical"
                 android:layout_height="wrap_content">
-
-
             </LinearLayout>
-
 
         </ScrollView>
 
