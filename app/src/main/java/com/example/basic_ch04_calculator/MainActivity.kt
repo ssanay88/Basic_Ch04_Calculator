@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(mainBinding.root)
 
+        // Room DB 생성
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
@@ -69,16 +70,17 @@ class MainActivity : AppCompatActivity() {
     // 숫자 버튼을 클릭하는 경우
     private fun numberFunClicked(number : String) {
 
+        // isOperator가 true일 경우 연산자가 들어갔다는 의미 , 띄어쓰기 추가
         if (isOperator) {
             mainBinding.expressionTextView.append(" ")
-
         }
 
-        isOperator = false
+        isOperator = false    // 연산자가 들어간 바로 다음 경우만 true로 처리
 
-        // 숫자 연산자 숫자 형태로 입력하기 때문에 띄어쓰기로 구분
+        // 숫자 연산자 숫자 형태로 입력하기 때문에 띄어쓰기로 구분 , 배열로 저장
         var expressionText = mainBinding.expressionTextView.text.split(" ")
 
+        // 숫자가 들어왔을 경우 예외 처리
         if ( expressionText.isNotEmpty() && expressionText.last().length >= 15 ) {
             Toast.makeText(this,"15자리 까지만 사용할 수 있습니다.",Toast.LENGTH_SHORT).show()
             return  // 토스트 메세지 호출 후 리턴으로 함수 종료
@@ -95,6 +97,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun operatorBtnClicked(operator : String) {
 
+        // 계산식에 아무것도 안들어가있는 경우 연산자를 추가하지 않는다
         if (mainBinding.expressionTextView.text.isEmpty()) {
             return
         }
@@ -117,14 +120,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 연산자를 입력할 경우 연산자의 text Color를 초록색으로 변경 후 다시 적용
-        val ssb = SpannableStringBuilder(mainBinding.expressionTextView.text)
+        // SpannableStringBuider : 코드상에서 TextView의 Text의 여러 속성들을 변경할 수 있도록 해준다.
+        val ssb = SpannableStringBuilder(mainBinding.expressionTextView.text)    // 계산식 Text로 선언
         ssb.setSpan(
             ForegroundColorSpan(getColor(R.color.green)),
             mainBinding.expressionTextView.text.length - 1,
             mainBinding.expressionTextView.text.length,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 
-        mainBinding.expressionTextView.text = ssb
+        mainBinding.expressionTextView.text = ssb    // 다시 설정한 계산식 Text를 넣어준다.
 
         // 연산자를 추가했으므로 둘 다 true로 변경
         isOperator = true
@@ -147,24 +151,25 @@ class MainActivity : AppCompatActivity() {
 
         val expressionTexts = mainBinding.expressionTextView.text.split(" ")
 
+        // 계산식이 비어있거나 첫번째 수만 입력되어 있는 경우 아무 결과 X
         if (mainBinding.expressionTextView.text.isEmpty() || expressionTexts.size == 1) {
             return
         }
 
+        // 첫번째 수와 연산자까지만 입력된 경우
         if (expressionTexts.size != 3 && hasOperator) {
             Toast.makeText(this,"아직 완성되지 않은 수식입니다.",Toast.LENGTH_SHORT).show()
             return
         }
 
+        // 각 수가 정수로 치환이 안됐을 경우
         if (expressionTexts[0].isNumber().not() || expressionTexts[2].isNumber().not()) {
             Toast.makeText(this,"오류가 발생했습니다..",Toast.LENGTH_SHORT).show()
             return
         }
 
-
-
-        val expressionText = mainBinding.expressionTextView.text.toString()
-        val resultText = calculateExpression()
+        val expressionText = mainBinding.expressionTextView.text.toString()    // DB에 저장용
+        val resultText = calculateExpression()    // 계산 결과값을 resultText로 선언
 
         // TODO 디비에 넣어주는 부분 , 디비와 관련된 과정은 새로운 스레드에서 진행
         Thread(Runnable {
@@ -181,6 +186,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    // 계산식을 실제로 계산하는 함수
     private fun calculateExpression() : String {
 
         val expressionText = mainBinding.expressionTextView.text.split(" ")
@@ -192,9 +198,9 @@ class MainActivity : AppCompatActivity() {
             return ""
         }
 
-        val exp1 = expressionText[0].toBigInteger()
-        val exp2 = expressionText[2].toBigInteger()
-        val op = expressionText[1]
+        val exp1 = expressionText[0].toBigInteger()    // 첫번째 숫자 Int형으로 변환
+        val exp2 = expressionText[2].toBigInteger()    // 두번째 숫자 Int형으로 변환
+        val op = expressionText[1]    // 연산자
 
         return when(op) {
             "+" -> (exp1 + exp2).toString()
@@ -203,33 +209,30 @@ class MainActivity : AppCompatActivity() {
             "/" -> (exp1 / exp2).toString()
             "%" -> (exp1 % exp2).toString()
             else -> ""
-
         }
     }
 
     fun historyButtonClicked(v: View) {
 
-        mainBinding.historyLayout.isVisible = true
+        mainBinding.historyLayout.isVisible = true    // 기록 창 보여주도록 설정
         mainBinding.historyLinearLayout.removeAllViews()    // 레이아웃 아래 있는 모든 뷰 삭제
 
         // TODO 디비에서 모든 기록 가져오기
         // TODO 뷰에 모든 기록 할당하기
         Thread(Runnable {
-
+            // 모든 기록에 거꾸로 접근하여 하나씩 View에 출력
             db.historyDao().getAll().reversed().forEach {
-
                 runOnUiThread {
                     val historyView = LayoutInflater.from(this).inflate(R.layout.history_row, null, false)
 
                     historyView.findViewById<TextView>(R.id.expressionTextView).text = it.expression
                     historyView.findViewById<TextView>(R.id.resultTextView).text = "=${it.result}"
 
+                    // View 추가
                     mainBinding.historyLinearLayout.addView(historyView)
 
                 }
-
             }
-
         }).start()
 
 
@@ -240,6 +243,7 @@ class MainActivity : AppCompatActivity() {
         // TODO 뷰에서 모든 기록 삭제
 
         mainBinding.historyLinearLayout.removeAllViews()    // 뷰에서 모든 기록 삭제
+
         Thread(Runnable {
             db.historyDao().deleteAll()
         }).start()
@@ -249,9 +253,6 @@ class MainActivity : AppCompatActivity() {
     fun closeHistoryClicked(v: View) {
         mainBinding.historyLayout.isVisible = false
     }
-
-
-
 
     // 숫자인지를 판단하는 String 확장 함수
     fun String.isNumber() : Boolean {

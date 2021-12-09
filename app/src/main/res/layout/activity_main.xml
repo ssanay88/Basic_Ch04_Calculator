@@ -350,36 +350,37 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="10dp"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/historyClearBtn"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/closeBtn">
 
             <LinearLayout
-                android:layout_width="match_parent"
                 android:id="@+id/historyLinearLayout"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
             </LinearLayout>
 
         </ScrollView>
 
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/historyClearBtn"
             android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="47dp"
             android:layout_marginEnd="47dp"
+            android:layout_marginBottom="38dp"
+            android:background="@drawable/button_background_green"
+            android:onClick="historyClearClicked"
+            android:stateListAnimator="@null"
             android:text="계산기록 삭제"
             android:textColor="@color/white"
             android:textSize="18sp"
-            android:id="@+id/historyClearBtn"
-            android:onClick="historyClearClicked"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_background_green"
-            android:stateListAnimator="@null"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="38dp"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -387,8 +388,9 @@
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-<!--
+    <!--
 
-레이아웃을 겹쳐서 설정한 뒤 나타냈다가 사라졌다가 할 수 있도록 한다.
+    레이아웃을 겹쳐서 설정한 뒤 나타냈다가 사라졌다가 할 수 있도록 한다.
+    ScrollView 안에는 layout이 들어가야한다.
 
--->
+    -->
